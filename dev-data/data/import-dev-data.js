@@ -44,7 +44,7 @@ const deleteData = async () => {
     await Transaction.deleteMany();
     await Budget.deleteMany();
     await Pot.deleteMany();
-    console.log('Data Successfully delete!');
+    console.log('Data Successfully deleted!');
   } catch (err) {
     console.log(err);
   }
