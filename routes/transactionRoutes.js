@@ -3,15 +3,12 @@ const transactionController = require('../controllers/transactionController.js')
 
 const router = express.Router();
 
-router.param('id', transactionController.checkId);
+// router.param('id', transactionController.checkId);
 
 router
   .route('/')
   .get(transactionController.getAllTransactions)
-  .post(
-    transactionController.checkBody,
-    transactionController.createTransaction,
-  );
+  .post(transactionController.createTransaction);
 
 router
   .route('/:id')

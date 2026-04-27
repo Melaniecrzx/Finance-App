@@ -5,6 +5,10 @@ const transactionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   },
+  avatar: {
+    type: String,
+    required: [true, 'A transaction must have an avatar'],
+  },
   name: {
     type: String,
     required: [true, 'A transaction must have a name'],

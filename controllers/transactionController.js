@@ -1,92 +1,99 @@
-const fs = require('fs');
+const Transaction = require('../models/transactionModel.js');
 
-const data = JSON.parse(
-  fs.readFileSync(`${__dirname}/../dev-data/data/data.json`),
-);
+// const data = JSON.parse(
+//   fs.readFileSync(`${__dirname}/../dev-data/data/data.json`),
+// );
 
-const { transactions } = data;
-transactions.forEach((t, i) => {
-  t.id = i + 1;
-});
+// const { transactions } = data;
+// transactions.forEach((t, i) => {
+//   t.id = i + 1;
+// });
 
-exports.checkId = (req, res, next) => {
-  if (req.params.id * 1 > transactions.length) {
-    return res.status(404).json({
+exports.getAllTransactions = async (req, res) => {
+  try {
+    const transactions = await Transaction.find(); //return all transactions
+    res.status(200).json({
+      status: 'success',
+      results: transactions.length,
+      data: {
+        transactions,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({
       status: 'fail',
-      message: 'Invalid idea',
+      message: err,
     });
   }
-  next();
 };
 
-exports.checkBody = (req, res, next) => {
-  if (!req.body.name || !req.body.amount || req.body.recurring === undefined) {
-    return res.status(400).json({
+exports.getTransaction = async (req, res) => {
+  try {
+    const transaction = await Transaction.findById(req.params.id);
+    res.status(200).json({
+      status: 'success',
+      data: {
+        transaction,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({
       status: 'fail',
-      message: 'Missing required fields: name, amount or recurring',
+      message: err,
     });
   }
-  next();
 };
 
-exports.getAllTransactions = (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    requestAt: req.requestTime,
-    results: transactions.length,
-    data: {
-      transactions,
-    },
-  });
+exports.createTransaction = async (req, res) => {
+  try {
+    const newTransaction = await Transaction.create(req.body);
+    res.status(200).json({
+      status: 'success',
+      requestAt: req.requestTime,
+      data: {
+        newTransaction,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: 'Invalid data sent',
+    });
+  }
 };
 
-exports.getTransaction = (req, res) => {
-  const id = req.params.id * 1;
-  const transaction = transactions.find((t) => t.id === id);
-
-  res.status(200).json({
-    status: 'success',
-    requestAt: req.requestTime,
-    data: {
-      transaction,
-    },
-  });
+exports.updateTransaction = async (req, res) => {
+  try {
+    const updatedTransation = await Transaction.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true },
+    );
+    res.status(200).json({
+      status: 'success',
+      data: {
+        updatedTransation,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: 'Invalid data sent',
+    });
+  }
 };
 
-exports.createTransaction = (req, res) => {
-  const newTransaction = req.body;
-  transactions.push(newTransaction);
-  fs.writeFile(
-    `${__dirname}/../dev-data/data/data.json`,
-    JSON.stringify(data, null, 2),
-    (err) => {
-      if (err) {
-        return res
-          .status(500)
-          .json({ status: 'error', message: 'Erreur écriture fichier' });
-      }
-
-      res.status(201).json({
-        status: 'success',
-        requestAt: req.requestTime,
-        data: { transaction: newTransaction },
-      });
-    },
-  );
-};
-
-exports.updateTransaction = (req, res) => {
-  res.status(200).json({
-    status: 'sucess',
-    requestAt: req.requestTime,
-    data: '<Updated transaction here...',
-  });
-};
-
-exports.deleteTransaction = (req, res) => {
-  res.status(204).json({
-    status: 'sucess',
-    requestAt: req.requestTime,
-    data: null,
-  });
+exports.deleteTransaction = async (req, res) => {
+  try {
+    await Transaction.findByIdAndDelete(req.params.id);
+    res.status(204).json({
+      status: 'sucess',
+      data: null,
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: err,
+    });
+  }
 };
