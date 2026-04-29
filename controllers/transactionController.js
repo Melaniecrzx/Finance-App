@@ -1,17 +1,41 @@
 const Transaction = require('../models/transactionModel.js');
 
-// const data = JSON.parse(
-//   fs.readFileSync(`${__dirname}/../dev-data/data/data.json`),
-// );
-
-// const { transactions } = data;
-// transactions.forEach((t, i) => {
-//   t.id = i + 1;
-// });
-
 exports.getAllTransactions = async (req, res) => {
   try {
-    const transactions = await Transaction.find(); //return all transactions
+    // Build query
+    // 1A) Filtering
+    const queryObj = { ...req.query };
+    const excludedFields = ['page', 'sort', 'limit', 'fields'];
+    excludedFields.forEach((el) => delete queryObj[el]);
+
+    // 1B) Advanced filtering
+    let queryStr = JSON.stringify(queryObj);
+    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+    let query = Transaction.find(JSON.parse(queryStr)); //return all transactions
+
+    // 2) Sorting
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(',').join(' ');
+      query = query.sort(sortBy);
+    } else {
+      query = query.sort('-date');
+    }
+
+    // 3) Pagination
+    const page = req.query.page * 1 || 1;
+    const limit = req.query.limit * 1 || 10;
+    const skip = (page - 1) * limit;
+    query = query.skip(skip).limit(limit);
+
+    if (req.query.page) {
+      const numTransactions = await Transaction.countDocuments();
+      if (skip >= numTransactions) throw new Error('This page does not exist');
+    }
+
+    // Execute query
+    const transactions = await query;
+
+    // Send response
     res.status(200).json({
       status: 'success',
       results: transactions.length,
