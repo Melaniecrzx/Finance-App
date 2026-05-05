@@ -1,39 +1,13 @@
 const Transaction = require('../models/transactionModel.js');
+const APIFeatures = require('../utils/apiFeatures.js');
 
 exports.getAllTransactions = async (req, res) => {
   try {
-    // Build query
-    // 1A) Filtering
-    const queryObj = { ...req.query };
-    const excludedFields = ['page', 'sort', 'limit', 'fields'];
-    excludedFields.forEach((el) => delete queryObj[el]);
-
-    // 1B) Advanced filtering
-    let queryStr = JSON.stringify(queryObj);
-    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
-    let query = Transaction.find(JSON.parse(queryStr)); //return all transactions
-
-    // 2) Sorting
-    if (req.query.sort) {
-      const sortBy = req.query.sort.split(',').join(' ');
-      query = query.sort(sortBy);
-    } else {
-      query = query.sort('-date');
-    }
-
-    // 3) Pagination
-    const page = req.query.page * 1 || 1;
-    const limit = req.query.limit * 1 || 10;
-    const skip = (page - 1) * limit;
-    query = query.skip(skip).limit(limit);
-
-    if (req.query.page) {
-      const numTransactions = await Transaction.countDocuments();
-      if (skip >= numTransactions) throw new Error('This page does not exist');
-    }
-
-    // Execute query
-    const transactions = await query;
+    const features = new APIFeatures(Transaction.find(), req.query)
+      .filter()
+      .sort()
+      .paginate();
+    const transactions = await features.query;
 
     // Send response
     res.status(200).json({
@@ -71,9 +45,8 @@ exports.getTransaction = async (req, res) => {
 exports.createTransaction = async (req, res) => {
   try {
     const newTransaction = await Transaction.create(req.body);
-    res.status(200).json({
+    res.status(201).json({
       status: 'success',
-      requestAt: req.requestTime,
       data: {
         newTransaction,
       },
@@ -111,8 +84,83 @@ exports.deleteTransaction = async (req, res) => {
   try {
     await Transaction.findByIdAndDelete(req.params.id);
     res.status(204).json({
-      status: 'sucess',
+      status: 'success',
       data: null,
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: err,
+    });
+  }
+};
+
+exports.getTransactionStats = async (req, res) => {
+  try {
+    const stats = await Transaction.aggregate([
+      { $match: { amount: { $lt: 0 } } },
+      {
+        $group: {
+          _id: '$category',
+          total: { $sum: '$amount' },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { total: 1 } },
+    ]);
+    res.status(200).json({
+      status: 'success',
+      data: {
+        stats,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: err,
+    });
+  }
+};
+
+exports.getMonthlyPlan = async (req, res) => {
+  try {
+    const year = req.params.year * 1;
+    const plan = await Transaction.aggregate([
+      {
+        $match: {
+          date: {
+            $gte: new Date(`${year}-01-01`),
+            $lte: new Date(`${year}-12-31`),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: '$date' },
+          count: { $sum: 1 },
+          transactions: { $push: '$name' },
+        },
+      },
+      {
+        $addFields: { month: '$_id' },
+      },
+      {
+        $project: {
+          _id: 0,
+        },
+      },
+      {
+        $sort: { count: -1 },
+      },
+      {
+        $limit: 12,
+      },
+    ]);
+    res.status(200).json({
+      status: 'success',
+      data: {
+        plan,
+      },
     });
   } catch (err) {
     res.status(400).json({

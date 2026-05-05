@@ -11,6 +11,12 @@ router
   .post(transactionController.createTransaction);
 
 router
+  .route('/transactions-stats')
+  .get(transactionController.getTransactionStats);
+
+router.route('/monthly-plan/:year').get(transactionController.getMonthlyPlan);
+
+router
   .route('/:id')
   .get(transactionController.getTransaction)
   .patch(transactionController.updateTransaction)
