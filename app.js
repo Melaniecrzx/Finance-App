@@ -10,6 +10,7 @@ const userRouter = require('./routes/userRoutes.js');
 const authRouter = require('./routes/authRoutes.js');
 const transactionRouter = require('./routes/transactionRoutes.js');
 const budgetRouter = require('./routes/budgetRoutes.js');
+const potRouter = require('./routes/potRoutes.js');
 
 // 1) Middlewares
 app.use(morgan('dev'));
@@ -25,6 +26,7 @@ app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/transactions', transactionRouter);
 app.use('/api/v1/budgets', budgetRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/pots', potRouter);
 
 app.get('/', (req, res) => {
   res.status(200).json({ message: ' API is running', app: 'Finance' });
