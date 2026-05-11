@@ -445,23 +445,6 @@
       "amount": -16.5,
       "recurring": false,
       "id": 49
-    },
-    {
-      "avatar": "",
-      "name": "Mel",
-      "category": "General",
-      "date": "2024-08-19T14:23:11Z",
-      "amount": 75.5,
-      "recurring": false,
-      "id": 50
-    },
-    {
-      "avatar": "",
-      "name": "Mel",
-      "category": "General",
-      "date": "2024-08-19T14:23:11Z",
-      "amount": 75.5,
-      "recurring": false
     }
   ],
   "budgets": [

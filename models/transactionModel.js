@@ -47,6 +47,7 @@ const transactionSchema = new mongoose.Schema({
         'Lifestyle',
         'Shopping',
         'General',
+        'Education',
       ],
       message: 'Wrong category',
     },

@@ -4,22 +4,26 @@ const catchAsync = require('../utils/catchAsync.js');
 const AppError = require('../utils/appError.js');
 
 exports.getAllTransactions = catchAsync(async (req, res, next) => {
-  const features = new APIFeatures(Transaction.find(), req.query)
+  const { search } = req.query;
+  const searchFilter = search
+    ? { name: { $regex: search, $options: 'i' } }
+    : {};
+
+  const total = await Transaction.countDocuments(searchFilter);
+
+  const features = new APIFeatures(Transaction.find(searchFilter), req.query)
     .filter()
     .sort()
     .paginate();
   const transactions = await features.query;
 
-  // Send response
   res.status(200).json({
     status: 'success',
     results: transactions.length,
-    data: {
-      transactions,
-    },
+    total,
+    data: { transactions },
   });
 });
-
 exports.getTransaction = catchAsync(async (req, res, next) => {
   const transaction = await Transaction.findById(req.params.id);
   if (!transaction) {
