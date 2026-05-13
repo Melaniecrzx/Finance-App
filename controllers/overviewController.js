@@ -1,8 +1,13 @@
+const mongoose = require('mongoose');
+
 const catchAsync = require('../utils/catchAsync.js');
 const Transaction = require('../models/transactionModel.js');
 
 exports.getOverview = catchAsync(async (req, res, next) => {
   const stats = await Transaction.aggregate([
+    {
+      $match: { user: new mongoose.Types.ObjectId(req.user._id) },
+    },
     {
       $group: {
         _id: null,
@@ -12,7 +17,9 @@ exports.getOverview = catchAsync(async (req, res, next) => {
       },
     },
   ]);
-  const recentTransactions = await Transaction.find().sort('-date').limit(5);
+  const recentTransactions = await Transaction.find({ user: req.user._id })
+    .sort('-date')
+    .limit(5);
 
   res.status(200).json({
     status: 'success',
