@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Transaction = require('../models/transactionModel.js');
 const APIFeatures = require('../utils/apiFeatures.js');
 const catchAsync = require('../utils/catchAsync.js');
@@ -9,9 +10,14 @@ exports.getAllTransactions = catchAsync(async (req, res, next) => {
     ? { name: { $regex: search, $options: 'i' } }
     : {};
 
-  const total = await Transaction.countDocuments(searchFilter);
-
-  const features = new APIFeatures(Transaction.find(searchFilter), req.query)
+  const total = await Transaction.countDocuments({
+    user: req.user._id,
+    ...searchFilter,
+  });
+  const features = new APIFeatures(
+    Transaction.find({ user: req.user._id, ...searchFilter }),
+    req.query,
+  )
     .filter()
     .sort()
     .paginate();
@@ -38,7 +44,10 @@ exports.getTransaction = catchAsync(async (req, res, next) => {
 });
 
 exports.createTransaction = catchAsync(async (req, res, next) => {
-  const newTransaction = await Transaction.create(req.body);
+  const newTransaction = await Transaction.create({
+    ...req.body,
+    user: req.user._id,
+  });
   if (!newTransaction) {
     return next(new AppError('No transaction found with that id', 400));
   }
@@ -77,7 +86,12 @@ exports.deleteTransaction = catchAsync(async (req, res, next) => {
 
 exports.getTransactionStats = catchAsync(async (req, res, next) => {
   const stats = await Transaction.aggregate([
-    { $match: { amount: { $lt: 0 } } },
+    {
+      $match: {
+        amount: { $lt: 0 },
+        user: new mongoose.Types.ObjectId(req.user._id), // ← convertit en ObjectId
+      },
+    },
     {
       $group: {
         _id: '$category',
@@ -104,6 +118,7 @@ exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
           $gte: new Date(`${year}-01-01`),
           $lte: new Date(`${year}-12-31`),
         },
+        user: new mongoose.Types.ObjectId(req.user._id),
       },
     },
     {

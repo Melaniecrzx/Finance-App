@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const Transaction = require('../../models/transactionModel.js');
 const Budget = require('../../models/budgetModel.js');
 const Pot = require('../../models/potModel.js');
+const User = require('../../models/userModel.js');
 
 dotenv.config({ path: './config.env' });
 
@@ -27,12 +28,18 @@ const { transactions, budgets, pots } = JSON.parse(
 
 const importData = async () => {
   try {
-    await Transaction.create(transactions);
-    console.log('✅ Transactions imported');
-    await Budget.create(budgets);
-    console.log('✅ Budgets imported');
-    await Pot.create(pots);
-    console.log('✅ Pots imported');
+    const demoUser = await User.create({
+      name: 'Demo User',
+      email: 'demo@finance.com',
+      password: 'Demo1234!',
+      passwordConfirmation: 'Demo1234!',
+    });
+    await Transaction.create(
+      transactions.map((t) => ({ ...t, user: demoUser._id })),
+    );
+    await Budget.create(budgets.map((b) => ({ ...b, user: demoUser._id })));
+    await Pot.create(pots.map((p) => ({ ...p, user: demoUser._id })));
+    console.log('✅ Data Successfully loaded!');
   } catch (err) {
     console.log(err.message); // ← message plus lisible
   }
@@ -43,6 +50,7 @@ const importData = async () => {
 
 const deleteData = async () => {
   try {
+    await User.deleteMany();
     await Transaction.deleteMany();
     await Budget.deleteMany();
     await Pot.deleteMany();
