@@ -28,11 +28,13 @@ const { transactions, budgets, pots } = JSON.parse(
 const importData = async () => {
   try {
     await Transaction.create(transactions);
+    console.log('✅ Transactions imported');
     await Budget.create(budgets);
+    console.log('✅ Budgets imported');
     await Pot.create(pots);
-    console.log('Data Successfully loaded!');
+    console.log('✅ Pots imported');
   } catch (err) {
-    console.log(err);
+    console.log(err.message); // ← message plus lisible
   }
   process.exit();
 };

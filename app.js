@@ -8,6 +8,7 @@ const globalErrorHandler = require('./controllers/errorController.js');
 const userRouter = require('./routes/userRoutes.js');
 const authRouter = require('./routes/authRoutes.js');
 const transactionRouter = require('./routes/transactionRoutes.js');
+const budgetRouter = require('./routes/budgetRoutes.js');
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use((req, res, next) => {
 
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/transactions', transactionRouter);
+app.use('/api/v1/budgets', budgetRouter);
 app.use('/api/v1/users', userRouter);
 
 app.all('*', (req, res, next) => {
