@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const validator = require('validator');
 
 const transactionSchema = new mongoose.Schema({
   user: {
@@ -10,7 +9,6 @@ const transactionSchema = new mongoose.Schema({
     type: String,
     trim: true,
     required: [true, 'A transaction must have an avatar'],
-    validator: [validator.isURL, 'Transaction avatar must be an url'],
   },
   name: {
     type: String,
@@ -23,10 +21,6 @@ const transactionSchema = new mongoose.Schema({
     minLength: [
       5,
       'A transaction name must have more or equal than 5 characters',
-    ],
-    validator: [
-      validator.isAlpha,
-      'Transaction name must only contain characters',
     ],
   },
   date: {
