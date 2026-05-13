@@ -47,3 +47,34 @@ exports.deletePot = catchAsync(async (req, res, next) => {
     data: null,
   });
 });
+
+exports.depositPot = catchAsync(async (req, res, next) => {
+  const pot = await Pot.findById(req.params.id);
+  if (!pot) {
+    return next(new AppError('No pot found with that id', 400));
+  }
+  const newTotal = pot.total + req.body.amount;
+  if (newTotal > pot.target)
+    return next(new AppError('Amount exceeds target', 400));
+  pot.total = newTotal;
+  await pot.save();
+  res.status(200).json({
+    status: 'success',
+    data: { pot },
+  });
+});
+
+exports.withdrawPot = catchAsync(async (req, res, next) => {
+  const pot = await Pot.findById(req.params.id);
+  if (!pot) {
+    return next(new AppError('No pot found with that id', 400));
+  }
+  const newTotal = pot.total - req.body.amount;
+  if (newTotal < 0) return next(new AppError('Insufficient funds', 400));
+  pot.total = newTotal;
+  await pot.save();
+  res.status(200).json({
+    status: 'success',
+    data: { pot },
+  });
+});

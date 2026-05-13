@@ -1,7 +1,10 @@
 const express = require('express');
 const budgetController = require('../controllers/budgetController.js');
+const authContoller = require('../controllers/authController.js');
 
 const router = express.Router();
+
+router.use(authContoller.protect);
 
 router
   .route('/')
