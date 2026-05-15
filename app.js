@@ -14,6 +14,7 @@ const transactionRouter = require('./routes/transactionRoutes.js');
 const budgetRouter = require('./routes/budgetRoutes.js');
 const potRouter = require('./routes/potRoutes.js');
 const overviewRouter = require('./routes/overviewRoutes.js');
+const billRouter = require('./routes/billRoutes.js');
 
 const app = express();
 
@@ -38,11 +39,13 @@ if (process.env.NODE_ENV === 'development') {
 
 //limit request from same API
 const limiter = rateLimit({
-  max: 100,
+  max: 1000,
   windowMs: 60 * 60 * 1000,
   message: 'Too many requests from this IP, please try again in an hour!',
 });
-app.use('/api', limiter);
+if (process.env.NODE_ENV !== 'development') {
+  app.use('/api', limiter);
+}
 
 //body parser, reading from body into req.body
 app.use(
@@ -70,6 +73,7 @@ app.use('/api/v1/transactions', transactionRouter);
 app.use('/api/v1/budgets', budgetRouter);
 app.use('/api/v1/pots', potRouter);
 app.use('/api/v1/overview', overviewRouter);
+app.use('/api/v1/bills', billRouter);
 
 app.get('/', (req, res) => {
   res.status(200).json({ message: ' API is running', app: 'Finance' });

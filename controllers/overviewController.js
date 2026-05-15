@@ -21,6 +21,18 @@ exports.getOverview = catchAsync(async (req, res, next) => {
     .sort('-date')
     .limit(5);
 
+  if (!stats.length) {
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        balance: 0,
+        income: 0,
+        expenses: 0,
+        recentTransactions: [],
+      },
+    });
+  }
+
   res.status(200).json({
     status: 'success',
     data: {

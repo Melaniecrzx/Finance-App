@@ -13,4 +13,7 @@ router
   .patch(potController.updatePot)
   .delete(potController.deletePot);
 
+router.route('/:id/deposit').post(potController.depositPot);
+router.route('/:id/withdraw').post(potController.withdrawPot);
+
 module.exports = router;
